@@ -1,4 +1,4 @@
-package pl.jdev.servlet;
+package pl.jdev.opes_bot.servlet;
 
 import java.io.IOException;
 

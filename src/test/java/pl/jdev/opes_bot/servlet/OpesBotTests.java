@@ -1,4 +1,4 @@
-package pl.jdev.servlet;
+package pl.jdev.opes_bot.servlet;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,7 +26,7 @@ import static org.junit.Assert.assertEquals;
 @WebAppConfiguration
 @IntegrationTest("server.port:0")
 @DirtiesContext
-public class SampleServletApplicationTests {
+public class OpesBotTests {
 
     @Value("${local.server.port}")
     private int port;
