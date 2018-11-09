@@ -4,8 +4,8 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.jdev.opes.integration.message.SMARequest;
 import pl.jdev.opes_bot.service.SMACalculator;
+import pl.jdev.opes_commons.rest.message.SMARequest;
 
 @RestController
 @RequestMapping("/indicator")
@@ -21,7 +21,7 @@ public class IndicatorController {
         log.traceEntry("calculateSMA", smaRequest);
 
 
-        return null;
+        return ResponseEntity.ok().body("A OK!");
     }
 
 //    @PostMapping(value = "/ema")

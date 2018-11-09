@@ -1,19 +1,18 @@
 package pl.jdev.opes_bot.service;
 
-
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import pl.jdev.opes.domain.instrument.Candlestick;
-import pl.jdev.opes.domain.instrument.CandlestickData;
-import pl.jdev.opes.rest.exception.CandlesValidationException;
+import pl.jdev.opes_commons.domain.instrument.Candlestick;
+import pl.jdev.opes_commons.domain.instrument.CandlestickData;
 
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -24,7 +23,7 @@ import static java.lang.String.format;
  */
 @Component(value = "smaCalculator")
 @Log4j2
-public class SMACalculator {
+public class SMACalculator implements Calculator {
 
     @Autowired
     DateFormat dateFormat;
@@ -35,10 +34,13 @@ public class SMACalculator {
      *
      * @param candles Candlesticks to calculate the SMA based on.
      * @return Map with single entry of (key) date the SMA has been calculated for and (value) SMA for the last period of the provided candlesticks based on their number.
-     * @throws CandlesValidationException
      */
-    public Map<String, Double> calculate(Collection<Candlestick> candles) throws CandlesValidationException {
-        log.traceEntry(format("Calculating SMA from %s", candles.toString()));
+    public Map<String, Double> calculate(final Collection<Candlestick> candles) throws IllegalArgumentException, NullPointerException {
+        Objects.requireNonNull(candles, "'candles' cannot be null!");
+        if (candles.size() == 0) {
+            throw new IllegalArgumentException("'candles' cannot be empty!");
+        }
+//        log.traceEntry(format("Calculating SMA from %s", candles.toString()));
 //        log.info(String.format("Calculating SMA based on: %s", candles));
 //        try {
 //            this.validate(candles);
@@ -46,12 +48,12 @@ public class SMACalculator {
 //            log.warning(e.getMessage());
 //            throw e;
 //        }
-        Map<String, CandlestickData> candleMap = strip(candles);
-        LinkedMap<String, CandlestickData> orderedCandles = this.orderByNatural(candleMap);
-        String latestPeriod = orderedCandles.lastKey();
-        double sma = this.performCalculation(orderedCandles);
-        log.traceExit(format("SMA for %s is %f", latestPeriod, sma));
-        return Map.of(latestPeriod, sma);
+//        Map<String, CandlestickData> candleMap = strip(candles);
+//        LinkedMap<String, CandlestickData> orderedCandles = this.orderByNatural(candleMap);
+//        String latestPeriod = orderedCandles.lastKey();
+//        double sma = this.performCalculation(orderedCandles);
+//        log.traceExit(format("SMA for %s is %f", latestPeriod, sma));
+        return calculate(candles, 1, candles.size());
     }
 
     /**
@@ -63,13 +65,18 @@ public class SMACalculator {
      * @param numOfTimePeriods
      * @return
      */
-    public Map<String, Double> calculate(Collection<Candlestick> candles, int numOfSMAs, int numOfTimePeriods) {
+    public Map<String, Double> calculate(final Collection<Candlestick> candles, final int numOfSMAs, final int numOfTimePeriods) throws IllegalArgumentException, NullPointerException {
+        Objects.requireNonNull(candles, "'candles' cannot be null!");
+
+        Objects.requireNonNull(numOfSMAs, "'numOfSMAs' cannot be null!");
+        Objects.requireNonNull(numOfTimePeriods, "'numOfTimePeriods' cannot be null!");
         log.traceEntry(format("Calculating %d SMAs with %d time periods from %s", numOfSMAs, numOfTimePeriods, candles.toString()));
         Map<String, CandlestickData> candleMap = strip(candles);
         LinkedMap<String, CandlestickData> orderedCandles = this.orderByNatural(candleMap);
         Map<String, Double> smas = new LinkedMap<>();
         int lastIndex = orderedCandles.size() - 1;
-        while (numOfSMAs != 0) {
+        int i = numOfSMAs;
+        while (i != 0) {
             log.trace(format("Processing candle: %s", orderedCandles.get(lastIndex)));
             LinkedMap<String, CandlestickData> perSmaCandles = orderedCandles
                     .keySet()
@@ -84,7 +91,7 @@ public class SMACalculator {
             smas.put(processedEntry.getKey(), processedEntry.getValue());
             log.trace(format("Processed entry: %s", processedEntry));
             orderedCandles.remove(lastIndex);
-            numOfSMAs--;
+            i--;
             lastIndex--;
         }
         smas.forEach((key, value) -> log.traceExit(format("SMA for %s is %f", key, value)));
@@ -92,7 +99,7 @@ public class SMACalculator {
     }
 
     //TODO: make this work
-    private void validate(Collection<Candlestick> candles) throws CandlesValidationException {
+    private void validate(final Collection<Candlestick> candles) throws IllegalArgumentException {
         Collection<Optional<CandlestickData>> asks = candles.stream()
                 .map(candlestick -> Optional.ofNullable(candlestick.getAsk()))
                 .collect(Collectors.toList());
@@ -106,11 +113,11 @@ public class SMACalculator {
         boolean validBids = bids.stream().allMatch(Optional::isPresent);
         boolean validMids = mids.stream().allMatch(Optional::isPresent);
         if (!(validAsks && validBids && validMids)) {
-            throw new CandlesValidationException(format("Candles validation failed: %s", candles));
+            throw new IllegalArgumentException(format("Candles validation failed: %s", candles));
         }
     }
 
-    private Map<String, CandlestickData> strip(Collection<Candlestick> candles) {
+    private Map<String, CandlestickData> strip(final Collection<Candlestick> candles) {
         log.traceEntry(format("Stripping candlesticks %s", candles));
         Map<String, CandlestickData> stripped = candles.stream()
                 .map(candlestick -> Map.entry(candlestick.getTime(),
@@ -124,7 +131,7 @@ public class SMACalculator {
     }
 
 
-    private LinkedMap<String, CandlestickData> orderByNatural(Map<String, CandlestickData> candleMap) {
+    private LinkedMap<String, CandlestickData> orderByNatural(final Map<String, CandlestickData> candleMap) {
         log.traceEntry(format("Ordering: %s", candleMap.toString()));
         LinkedMap<String, CandlestickData> orderedCandles = candleMap.keySet()
                 .stream()
@@ -145,7 +152,7 @@ public class SMACalculator {
         return orderedCandles;
     }
 
-    private double performCalculation(Map<String, CandlestickData> candleMap) {
+    private double performCalculation(final Map<String, CandlestickData> candleMap) {
         log.traceEntry(format("Calculating SMA from %s", candleMap.toString()));
         double candleCloseSum = candleMap.keySet()
                 .stream()
