@@ -1,4 +1,4 @@
-package pl.jdev.opes_bot.service;
+package pl.jdev.opes_bot.service.calculator;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;

@@ -2,10 +2,11 @@ package pl.jdev.opes_bot.controller;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import pl.jdev.opes_bot.service.SMACalculator;
+import pl.jdev.opes_bot.service.calculator.SMACalculator;
 import pl.jdev.opes_commons.rest.message.SMARequest;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/indicator")
@@ -17,11 +18,10 @@ public class IndicatorController {
 
     @PostMapping(value = "/sma")
     @ResponseBody
-    public ResponseEntity calculateSMA(@RequestBody SMARequest smaRequest) {
-        log.traceEntry("calculateSMA", smaRequest);
-
-
-        return ResponseEntity.ok().body("A OK!");
+    public Map<String, Double> calculateSMA(@RequestBody SMARequest smaRequest) {
+        return smaCalculator.calculate(smaRequest.getCandles(),
+                smaRequest.getNumOfSMAs(),
+                smaRequest.getNumOfTimePeriods());
     }
 
 //    @PostMapping(value = "/ema")

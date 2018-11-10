@@ -1,4 +1,4 @@
-package pl.jdev.opes_bot.service;
+package pl.jdev.opes_bot.service.calculator;
 
 import lombok.extern.log4j.Log4j2;
 import org.apache.commons.collections4.map.LinkedMap;

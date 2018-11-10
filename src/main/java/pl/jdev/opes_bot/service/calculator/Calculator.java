@@ -1,4 +1,4 @@
-package pl.jdev.opes_bot.service;
+package pl.jdev.opes_bot.service.calculator;
 
 import pl.jdev.opes_commons.domain.instrument.Candlestick;
 
