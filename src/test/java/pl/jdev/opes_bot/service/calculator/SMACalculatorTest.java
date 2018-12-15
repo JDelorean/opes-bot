@@ -1,4 +1,4 @@
-package pl.jdev.opes_bot.service;
+package pl.jdev.opes_bot.service.calculator;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,7 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import pl.jdev.opes_bot.service.calculator.Calculator;
 import pl.jdev.opes_commons.domain.instrument.Candlestick;
 
 import java.util.Collection;
