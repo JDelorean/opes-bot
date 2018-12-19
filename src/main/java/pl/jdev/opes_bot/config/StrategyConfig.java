@@ -3,6 +3,7 @@ package pl.jdev.opes_bot.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,7 @@ import pl.jdev.opes_bot.strategy.StrategyPolicy;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,14 +36,18 @@ public class StrategyConfig {
     @Bean
     public Map<UUID, Strategy> strategies() throws IOException {
         Map<UUID, Strategy> strategies = new HashMap<>();
-        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        YAMLFactory yaml = new YAMLFactory();
+        ObjectMapper mapper = new ObjectMapper(yaml);
         SimpleModule module = new SimpleModule();
         module.addDeserializer(Strategy.class, new StrategyFileDeserializer());
         mapper.registerModule(module);
         for (Resource file : getStrategyFiles()) {
-            Strategy strategy = mapper.readValue(new FileReader(file.getFile()), Strategy.class);
-            setEnabledByPolicy(strategy);
-            strategies.put(strategy.getId(), strategy);
+            YAMLParser yamlParser = yaml.createParser(new FileReader(file.getFile()));
+            List<Strategy> strategyList = mapper
+                    .readValues(yamlParser, Strategy.class)
+                    .readAll();
+            strategyList.forEach(this::setEnabledByPolicy);
+            strategyList.forEach(strategy -> strategies.put(strategy.getId(), strategy));
         }
         return strategies;
     }
