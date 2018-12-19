@@ -1,5 +1,8 @@
 package pl.jdev.opes_bot.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.jeasy.rules.api.Rule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -36,8 +39,18 @@ public class StrategyController {
 
     @GetMapping("/{strategyId}")
     @ResponseBody
-    public Strategy getStrategyDetails(@PathVariable("strategyId") UUID strategyUUID) {
-        return strategies.get(strategyUUID);
+    public JsonNode getStrategyDetails(@PathVariable("strategyId") UUID strategyUUID) {
+        Strategy strategy = strategies.get(strategyUUID);
+        List<UUID> ruleIds = (ArrayList<UUID>) strategy.getRules();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode strategyNode = mapper.convertValue(strategy, JsonNode.class);
+        ArrayNode rulesNode = (ArrayNode) strategyNode.get("rules");
+        rulesNode.removeAll();
+        ruleIds.stream()
+                .map(rules::get)
+                .map(rule -> mapper.convertValue(rule, JsonNode.class))
+                .forEach(rulesNode::add);
+        return strategyNode;
     }
 
     @PutMapping("/{strategyId}/enable")

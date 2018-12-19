@@ -24,11 +24,11 @@ public final class Strategy {
     private boolean isEnabled;
 
     public void enable() {
-        this.isEnabled = true;
+        if (!isEnabled) this.isEnabled = true;
     }
 
     public void disable() {
-        this.isEnabled = false;
+        if (isEnabled) this.isEnabled = false;
     }
 
     public void update(Map<String, Object> updates) {
